@@ -4,7 +4,7 @@ class WorldExplorer {
         this.countries = [];
         this.favorites = JSON.parse(localStorage.getItem('worldExplorerFavorites')) || [];
         this.currentTheme = localStorage.getItem('worldExplorerTheme') || 'light';
-        this.weatherApiKey = 'YOUR_OPENWEATHER_API_KEY'; // Replace with actual API key
+        this.weatherApiKey = '11214c7a18ccac833d4ff407f584441f'; // Your OpenWeatherMap API key
         this.currentTempUnit = 'metric'; // 'metric' for Celsius, 'imperial' for Fahrenheit
         this.map = null;
 
@@ -446,13 +446,17 @@ class WorldExplorer {
 
     showComparison(country1, country2) {
         const comparisonContainer = document.getElementById('comparison-results');
+        const comparisonResult = this.calculateComparisonWinner(country1, country2);
 
         comparisonContainer.innerHTML = `
-            <div class="comparison-card">
+            <div class="comparison-card ${comparisonResult.winner === 1 ? 'winner' : ''}">
                 ${this.createComparisonCard(country1)}
             </div>
-            <div class="comparison-card">
+            <div class="comparison-card ${comparisonResult.winner === 2 ? 'winner' : ''}">
                 ${this.createComparisonCard(country2)}
+            </div>
+            <div class="comparison-winner">
+                ${this.createWinnerCard(comparisonResult, country1, country2)}
             </div>
         `;
     }
@@ -505,11 +509,53 @@ class WorldExplorer {
 
     // Continent Browser
     showContinentCountries(continent) {
-        const continentCountries = this.countries.filter(country =>
-            country.region === continent ||
-            (continent === 'North America' && country.region === 'Americas' && country.subregion && country.subregion.includes('North')) ||
-            (continent === 'South America' && country.region === 'Americas' && country.subregion && country.subregion.includes('South'))
-        );
+        let continentCountries = [];
+
+        switch (continent) {
+            case 'Asia':
+                continentCountries = this.countries.filter(country => country.region === 'Asia');
+                break;
+            case 'Africa':
+                continentCountries = this.countries.filter(country => country.region === 'Africa');
+                break;
+            case 'Europe':
+                continentCountries = this.countries.filter(country => country.region === 'Europe');
+                break;
+            case 'North America':
+                continentCountries = this.countries.filter(country =>
+                    country.region === 'Americas' &&
+                    (country.subregion?.includes('North') ||
+                     country.subregion?.includes('Central') ||
+                     country.subregion?.includes('Caribbean'))
+                );
+                break;
+            case 'South America':
+                continentCountries = this.countries.filter(country =>
+                    country.region === 'Americas' &&
+                    country.subregion?.includes('South')
+                );
+                break;
+            case 'Australia':
+                continentCountries = this.countries.filter(country =>
+                    country.region === 'Oceania' ||
+                    country.name.common === 'Australia'
+                );
+                break;
+            case 'Antarctica':
+                continentCountries = this.countries.filter(country =>
+                    country.region === 'Antarctic' ||
+                    country.name.common.includes('Antarctica') ||
+                    country.subregion?.includes('Antarctica')
+                );
+                // If no countries found for Antarctica, show a special message
+                if (continentCountries.length === 0) {
+                    this.showAntarcticaInfo();
+                    return;
+                }
+                break;
+            default:
+                continentCountries = this.countries.filter(country => country.region === continent);
+        }
 
         const container = document.getElementById('continent-countries');
         container.innerHTML = `
@@ -535,6 +581,45 @@ class WorldExplorer {
                 this.selectCountry(country);
             });
         });
+    }
+
+    showAntarcticaInfo() {
+        const container = document.getElementById('continent-countries');
+        container.innerHTML = `
+            <div class="antarctica-info">
+                <h3><i class="fas fa-snowflake"></i> Antarctica - The Frozen Continent</h3>
+                <div class="antarctica-content">
+                    <div class="antarctica-card">
+                        <div class="antarctica-icon">🐧</div>
+                        <h4>About Antarctica</h4>
+                        <p>Antarctica is Earth's southernmost continent, containing the geographic South Pole. It is the fifth-largest continent and is nearly twice the size of Australia.</p>
+
+                        <div class="antarctica-facts">
+                            <div class="fact-item">
+                                <strong>Area:</strong> 14 million km² (5.4 million sq mi)
+                            </div>
+                            <div class="fact-item">
+                                <strong>Population:</strong> 1,000-5,000 researchers (seasonal)
+                            </div>
+                            <div class="fact-item">
+                                <strong>Lowest Temperature:</strong> -89.2°C (-128.6°F)
+                            </div>
+                            <div class="fact-item">
+                                <strong>Ice Coverage:</strong> 98% of the continent
+                            </div>
+                            <div class="fact-item">
+                                <strong>Research Stations:</strong> 70+ from 30 countries
+                            </div>
+                        </div>
+
+                        <div class="antarctica-note">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Antarctica has no permanent residents or sovereign nations. It is governed by the Antarctic Treaty System, which designates it as a scientific preserve.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // Favorites Management
@@ -589,6 +674,168 @@ class WorldExplorer {
         });
     }
 
+    // Comparison Winner Calculation
+    calculateComparisonWinner(country1, country2) {
+        const factors = [
+            {
+                name: 'Population',
+                getValue: (country) => country.population || 0,
+                higherIsBetter: true,
+                weight: 2
+            },
+            {
+                name: 'Area',
+                getValue: (country) => country.area || 0,
+                higherIsBetter: true,
+                weight: 2
+            },
+            {
+                name: 'Population Density',
+                getValue: (country) => (country.population && country.area) ? country.population / country.area : 0,
+                higherIsBetter: true,
+                weight: 1
+            },
+            {
+                name: 'Languages Diversity',
+                getValue: (country) => country.languages ? Object.keys(country.languages).length : 0,
+                higherIsBetter: true,
+                weight: 1
+            },
+            {
+                name: 'Timezone Span',
+                getValue: (country) => country.timezones ? country.timezones.length : 0,
+                higherIsBetter: true,
+                weight: 1
+            },
+            {
+                name: 'Border Countries',
+                getValue: (country) => country.borders ? country.borders.length : 0,
+                higherIsBetter: true,
+                weight: 1
+            }
+        ];
+
+        let country1Score = 0;
+        let country2Score = 0;
+        const breakdown = [];
+
+        factors.forEach(factor => {
+            const value1 = factor.getValue(country1);
+            const value2 = factor.getValue(country2);
+
+            let winner = 0;
+            let points = 0;
+
+            if (value1 > value2) {
+                winner = 1;
+                points = factor.weight;
+                country1Score += points;
+            } else if (value2 > value1) {
+                winner = 2;
+                points = factor.weight;
+                country2Score += points;
+            }
+
+            breakdown.push({
+                factor: factor.name,
+                value1: value1,
+                value2: value2,
+                winner: winner,
+                points: points,
+                weight: factor.weight
+            });
+        });
+
+        const totalPossiblePoints = factors.reduce((sum, factor) => sum + factor.weight, 0);
+
+        return {
+            winner: country1Score > country2Score ? 1 : (country2Score > country1Score ? 2 : 0),
+            country1Score: country1Score,
+            country2Score: country2Score,
+            totalPossiblePoints: totalPossiblePoints,
+            breakdown: breakdown,
+            margin: Math.abs(country1Score - country2Score)
+        };
+    }
+
+    createWinnerCard(result, country1, country2) {
+        const winnerCountry = result.winner === 1 ? country1 : country2;
+        const loserCountry = result.winner === 2 ? country1 : country2;
+        const winnerScore = result.winner === 1 ? result.country1Score : result.country2Score;
+        const loserScore = result.winner === 1 ? result.country2Score : result.country1Score;
+
+        if (result.winner === 0) {
+            return `
+                <div class="winner-header tie">
+                    <div class="winner-icon">🤝</div>
+                    <h3>It's a Tie!</h3>
+                    <p>Both countries scored ${result.country1Score} out of ${result.totalPossiblePoints} points</p>
+                </div>
+                <div class="comparison-breakdown">
+                    ${this.createBreakdownTable(result.breakdown, country1, country2)}
+                </div>
+            `;
+        }
+
+        const winPercentage = Math.round((winnerScore / result.totalPossiblePoints) * 100);
+
+        return `
+            <div class="winner-header">
+                <div class="winner-icon">🏆</div>
+                <h3>${winnerCountry.name.common} Wins!</h3>
+                <div class="winner-score">
+                    <span class="score">${winnerScore}</span> - <span class="score">${loserScore}</span>
+                    <div class="score-details">
+                        Won by ${result.margin} point${result.margin !== 1 ? 's' : ''}
+                        (${winPercentage}% performance)
+                    </div>
+                </div>
+            </div>
+            <div class="comparison-breakdown">
+                ${this.createBreakdownTable(result.breakdown, country1, country2)}
+            </div>
+        `;
+    }
+
+    createBreakdownTable(breakdown, country1, country2) {
+        return `
+            <h4>📊 Detailed Breakdown</h4>
+            <div class="breakdown-table">
+                <div class="breakdown-header">
+                    <div class="factor-name">Factor</div>
+                    <div class="country-value">${country1.name.common}</div>
+                    <div class="country-value">${country2.name.common}</div>
+                    <div class="winner-indicator">Winner</div>
+                    <div class="points">Points</div>
+                </div>
+                ${breakdown.map(item => `
+                    <div class="breakdown-row">
+                        <div class="factor-name">${item.factor}</div>
+                        <div class="country-value ${item.winner === 1 ? 'winning-value' : ''}">${this.formatBreakdownValue(item.factor, item.value1)}</div>
+                        <div class="country-value ${item.winner === 2 ? 'winning-value' : ''}">${this.formatBreakdownValue(item.factor, item.value2)}</div>
+                        <div class="winner-indicator">
+                            ${item.winner === 1 ? '🥇' : (item.winner === 2 ? '🥇' : '🤝')}
+                        </div>
+                        <div class="points">+${item.points}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    formatBreakdownValue(factor, value) {
+        switch (factor) {
+            case 'Population':
+                return this.formatNumber(value);
+            case 'Area':
+                return `${this.formatNumber(value)} km²`;
+            case 'Population Density':
+                return `${this.formatNumber(Math.round(value))} people/km²`;
+            default:
+                return value.toString();
+        }
+    }
+
     // Weather Functionality
     async showWeather(city, countryName) {
         if (!this.weatherApiKey || this.weatherApiKey === 'YOUR_OPENWEATHER_API_KEY') {
@@ -598,21 +845,41 @@ class WorldExplorer {
 
         try {
             this.showLoading();
-            const response = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.weatherApiKey}&units=${this.currentTempUnit}`
-            );
+            console.log(`Fetching weather for: ${city}`);
+            console.log(`API Key: ${this.weatherApiKey.substring(0, 8)}...`);
+
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${this.weatherApiKey}&units=${this.currentTempUnit}`;
+            console.log(`API URL: ${apiUrl.replace(this.weatherApiKey, 'API_KEY_HIDDEN')}`);
+
+            const response = await fetch(apiUrl);
+            console.log(`Response status: ${response.status} ${response.statusText}`);
 
             if (!response.ok) {
-                throw new Error('Weather data not available');
+                const errorData = await response.json().catch(() => null);
+                console.error('API Error Response:', errorData);
+
+                let errorMessage = 'Weather data not available';
+                if (response.status === 401) {
+                    errorMessage = 'Invalid API key. Please check your OpenWeatherMap API key.';
+                } else if (response.status === 404) {
+                    errorMessage = `City "${city}" not found. Please check the city name.`;
+                } else if (response.status === 429) {
+                    errorMessage = 'API rate limit exceeded. Please try again later.';
+                } else if (errorData && errorData.message) {
+                    errorMessage = errorData.message;
+                }
+
+                throw new Error(errorMessage);
             }
 
             const weatherData = await response.json();
+            console.log('Weather data received:', weatherData);
             this.displayWeather(weatherData, countryName);
             this.hideLoading();
         } catch (error) {
             console.error('Error fetching weather:', error);
             this.hideLoading();
-            this.showWeatherError('Unable to fetch weather data for this location.');
+            this.showWeatherError(`Unable to fetch weather data: ${error.message}`);
         }
     }
 
