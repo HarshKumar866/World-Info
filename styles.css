@@ -608,7 +608,106 @@ body {
     font-size: 1.1rem;
 }
 
-/* Enhanced Mobile Responsive Design */
+/* Large Desktop Screens (1440px and up) */
+@media (min-width: 1440px) {
+    .app-container {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .header-content {
+        max-width: 1600px;
+        padding: 1.5rem 3rem;
+    }
+
+    .nav-tabs {
+        max-width: 1600px;
+    }
+
+    .main-content {
+        max-width: 1600px;
+        padding: 3rem;
+    }
+
+    .search-results {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .country-info {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .comparison-results {
+        gap: 3rem;
+    }
+}
+
+/* Desktop and Laptop Screens (1024px to 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .header-content {
+        padding: 1.25rem 2rem;
+    }
+
+    .main-content {
+        padding: 2.5rem;
+    }
+
+    .search-results {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.75rem;
+    }
+
+    .country-info {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+/* Tablet Landscape (769px to 1023px) */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .header-content {
+        padding: 1rem 1.5rem;
+    }
+
+    .main-content {
+        padding: 2rem;
+    }
+
+    .search-results {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .country-info {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .comparison-results {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .nav-tab {
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* Enhanced Mobile and Tablet Portrait Design (768px and below) */
 @media (max-width: 768px) {
     .header-content {
         padding: 0.75rem 1rem;
@@ -711,7 +810,42 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+/* Large Mobile Devices (481px to 640px) */
+@media (min-width: 481px) and (max-width: 640px) {
+    .header h1 {
+        font-size: 1.4rem;
+    }
+
+    .main-content {
+        padding: 1rem;
+        padding-bottom: 85px;
+    }
+
+    .search-results {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .country-card {
+        min-height: 280px;
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .nav-tab {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Standard Mobile Devices (361px to 480px) */
+@media (min-width: 361px) and (max-width: 480px) {
     .header h1 {
         font-size: 1.3rem;
     }
@@ -727,7 +861,7 @@ body {
 
     .main-content {
         padding: 0.75rem;
-        padding-bottom: 85px; /* Account for bottom nav */
+        padding-bottom: 85px;
     }
 
     .search-container {
@@ -798,28 +932,6 @@ body {
         font-size: 1.1rem;
     }
 
-    /* Smaller modal adjustments */
-    .modal-header {
-        padding: 0.875rem 1rem;
-    }
-
-    .modal-header h3 {
-        font-size: 1.1rem;
-    }
-
-    .weather-content {
-        padding: 1rem;
-    }
-
-    .weather-temp-large {
-        font-size: 2.5rem;
-    }
-
-    .weather-details-grid {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-
     .continent-card {
         padding: 1rem;
         min-height: 100px;
@@ -831,6 +943,131 @@ body {
 
     .continent-card h3 {
         font-size: 1rem;
+    }
+}
+
+/* Small Mobile Devices (320px to 360px) */
+@media (max-width: 360px) {
+    .header h1 {
+        font-size: 1.2rem;
+    }
+
+    .header-content {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .theme-toggle {
+        padding: 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    .main-content {
+        padding: 0.5rem;
+        padding-bottom: 85px;
+    }
+
+    #country-search {
+        font-size: 16px;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    }
+
+    .search-icon {
+        left: 0.75rem;
+    }
+
+    .clear-btn {
+        right: 0.75rem;
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    .country-card {
+        padding: 0.875rem;
+        min-height: 240px;
+    }
+
+    .country-flag {
+        height: 90px;
+    }
+
+    .country-name {
+        font-size: 1rem;
+    }
+
+    .country-details {
+        padding: 0.875rem;
+    }
+
+    .country-title h2 {
+        font-size: 1.3rem;
+    }
+
+    .country-flag-large {
+        width: 90px;
+        height: 60px;
+    }
+
+    .action-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        min-height: 40px;
+    }
+
+    .info-card {
+        padding: 0.875rem;
+    }
+
+    .info-card h4 {
+        font-size: 0.85rem;
+    }
+
+    .nav-tab {
+        font-size: 0.65rem;
+        padding: 0.5rem 0.125rem;
+        min-height: 55px;
+    }
+
+    .nav-tab i {
+        font-size: 1rem;
+    }
+
+    .continent-card {
+        padding: 0.875rem;
+        min-height: 90px;
+    }
+
+    .continent-card i {
+        font-size: 1.75rem;
+    }
+
+    .continent-card h3 {
+        font-size: 0.9rem;
+    }
+
+    .continent-description {
+        font-size: 0.75rem;
+    }
+
+    /* Smaller modal adjustments */
+    .modal-header {
+        padding: 0.75rem 0.875rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+
+    .weather-content {
+        padding: 0.875rem;
+    }
+
+    .weather-temp-large {
+        font-size: 2rem;
+    }
+
+    .weather-details-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 }
 
@@ -959,6 +1196,136 @@ body {
     font-weight: 600;
 }
 
+/* Winner Comparison Styles */
+.comparison-card.winner {
+    border: 2px solid var(--success-color);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    transform: scale(1.02);
+}
+
+.comparison-winner {
+    grid-column: 1 / -1;
+    margin-top: 2rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.winner-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--success-color), #059669);
+    color: white;
+    border-radius: 0.75rem;
+}
+
+.winner-header.tie {
+    background: linear-gradient(135deg, var(--secondary-color), #475569);
+}
+
+.winner-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.winner-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.winner-score {
+    margin-top: 1rem;
+}
+
+.winner-score .score {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0.5rem;
+}
+
+.score-details {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+}
+
+.comparison-breakdown {
+    margin-top: 1.5rem;
+}
+
+.comparison-breakdown h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.breakdown-table {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 80px 80px;
+    gap: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.breakdown-header {
+    display: contents;
+}
+
+.breakdown-header > div {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.breakdown-row {
+    display: contents;
+}
+
+.breakdown-row > div {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+}
+
+.breakdown-row:last-child > div {
+    border-bottom: none;
+}
+
+.factor-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.country-value {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.country-value.winning-value {
+    color: var(--success-color);
+    font-weight: 600;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.winner-indicator {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.points {
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
 /* Continents Section */
 .continents-section h2 {
     text-align: center;
@@ -1000,6 +1367,14 @@ body {
     color: var(--text-primary);
     font-size: 1.2rem;
     font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.continent-description {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+    font-style: italic;
 }
 
 .continent-countries {
@@ -1053,6 +1428,105 @@ body {
 .continent-country-info p {
     color: var(--text-secondary);
     font-size: 0.8rem;
+}
+
+/* Antarctica Special Info Styles */
+.antarctica-info {
+    margin-top: 2rem;
+}
+
+.antarctica-info h3 {
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.antarctica-content {
+    display: flex;
+    justify-content: center;
+}
+
+.antarctica-card {
+    background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+    border: 1px solid #81d4fa;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .antarctica-card {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    border-color: #3b82f6;
+}
+
+.antarctica-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.antarctica-card h4 {
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.antarctica-card > p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.antarctica-facts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+
+.fact-item {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+[data-theme="dark"] .fact-item {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.fact-item strong {
+    color: var(--primary-color);
+}
+
+.antarctica-note {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.antarctica-note i {
+    color: var(--primary-color);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.antarctica-note p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 /* Favorites Section */
@@ -1362,5 +1836,262 @@ body {
     .continent-country-flag {
         width: 32px;
         height: 21px;
+    }
+
+    /* Mobile Winner Comparison Styles */
+    .comparison-winner {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .winner-header {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .winner-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .winner-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .winner-score .score {
+        font-size: 1.5rem;
+    }
+
+    .breakdown-table {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .breakdown-header {
+        display: none; /* Hide header on mobile for cleaner look */
+    }
+
+    .breakdown-row {
+        display: block;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 1rem;
+    }
+
+    .breakdown-row > div {
+        padding: 0.25rem 0;
+        border-bottom: none;
+        display: block;
+    }
+
+    .factor-name {
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+
+    .country-value {
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .country-value::before {
+        content: attr(data-country) ": ";
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .winner-indicator {
+        text-align: left;
+        margin: 0.5rem 0;
+    }
+
+    .points {
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    /* Mobile Antarctica Styles */
+    .antarctica-card {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
+
+    .antarctica-icon {
+        font-size: 3rem;
+    }
+
+    .antarctica-card h4 {
+        font-size: 1.2rem;
+    }
+
+    .antarctica-facts {
+        gap: 0.5rem;
+    }
+
+    .fact-item {
+        padding: 0.5rem;
+    }
+
+    .antarctica-note {
+        padding: 0.75rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .continent-description {
+        font-size: 0.8rem;
+    }
+}
+
+/* Ultra-wide Screens (1920px and up) */
+@media (min-width: 1920px) {
+    .app-container {
+        max-width: 1920px;
+    }
+
+    .header-content,
+    .nav-tabs,
+    .main-content {
+        max-width: 1920px;
+        padding-left: 4rem;
+        padding-right: 4rem;
+    }
+
+    .search-results {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .country-info {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .comparison-results {
+        gap: 4rem;
+    }
+
+    .breakdown-table {
+        grid-template-columns: 3fr 2fr 2fr 100px 100px;
+    }
+}
+
+/* High DPI / Retina Display Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .country-flag,
+    .country-flag-large,
+    .suggestion-flag,
+    .comparison-flag,
+    .continent-country-flag {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Landscape Orientation Optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+    .nav-tabs {
+        position: static;
+        bottom: auto;
+        box-shadow: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-tab {
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        min-height: auto;
+    }
+
+    .nav-tab i {
+        margin-right: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding-bottom: 1rem;
+    }
+
+    .modal-content {
+        max-height: 85vh;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .nav-tabs,
+    .theme-toggle,
+    .action-btn,
+    .modal,
+    .loading-spinner {
+        display: none !important;
+    }
+
+    .header {
+        box-shadow: none;
+        border-bottom: 2px solid #000;
+    }
+
+    .country-details,
+    .comparison-results {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .country-flag,
+    .country-flag-large {
+        filter: grayscale(100%);
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+
+    .country-card,
+    .continent-card,
+    .comparison-card,
+    .info-card {
+        border: 2px solid var(--border-color);
+    }
+}
+
+/* Focus Visible for Better Keyboard Navigation */
+@supports selector(:focus-visible) {
+    .nav-tab:focus-visible,
+    .action-btn:focus-visible,
+    .country-card:focus-visible,
+    .continent-card:focus-visible,
+    #country-search:focus-visible {
+        outline: 3px solid var(--primary-color);
+        outline-offset: 2px;
     }
 }
