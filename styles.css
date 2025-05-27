@@ -192,6 +192,9 @@ body {
     color: var(--text-primary);
     font-size: 1rem;
     transition: all 0.3s ease;
+    min-height: 48px; /* Better touch target for mobile */
+    -webkit-appearance: none; /* Remove iOS styling */
+    appearance: none;
 }
 
 #country-search:focus {
@@ -207,14 +210,33 @@ body {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 0.25rem;
+    padding: 0.5rem; /* Larger touch target */
     border-radius: 0.25rem;
     transition: all 0.3s ease;
+    min-width: 44px; /* Better touch target for mobile */
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .clear-btn:hover {
     color: var(--danger-color);
     background: var(--bg-secondary);
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .clear-btn:hover {
+        color: var(--text-muted);
+        background: none;
+    }
+
+    .clear-btn:active {
+        color: var(--danger-color);
+        background: var(--bg-secondary);
+        transform: scale(0.95);
+    }
 }
 
 /* Suggestions Dropdown */
@@ -234,13 +256,14 @@ body {
 }
 
 .suggestion-item {
-    padding: 0.75rem 1rem;
+    padding: 1rem;
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s ease;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-height: 56px; /* Better touch target for mobile */
 }
 
 .suggestion-item:hover {
@@ -249,6 +272,18 @@ body {
 
 .suggestion-item:last-child {
     border-bottom: none;
+}
+
+/* Touch device optimizations for suggestions */
+@media (hover: none) and (pointer: coarse) {
+    .suggestion-item:hover {
+        background: none;
+    }
+
+    .suggestion-item:active {
+        background: var(--bg-secondary);
+        transform: scale(0.98);
+    }
 }
 
 .suggestion-flag {
@@ -274,12 +309,28 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--shadow);
+    min-height: 280px; /* Consistent card height */
 }
 
 .country-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-color);
+}
+
+/* Touch device optimizations for country cards */
+@media (hover: none) and (pointer: coarse) {
+    .country-card:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+        border-color: var(--border-color);
+    }
+
+    .country-card:active {
+        transform: scale(0.98);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
 }
 
 .country-flag {
@@ -478,6 +529,50 @@ body {
 .mb-2 { margin-bottom: 1rem; }
 .mb-3 { margin-bottom: 1.5rem; }
 
+/* Mobile-specific utility classes */
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+
+    .mobile-full-width {
+        width: 100% !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    .country-card:hover,
+    .continent-card:hover,
+    .action-btn:hover,
+    .theme-toggle:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+    }
+
+    /* Add active states for better touch feedback */
+    .country-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .continent-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .action-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+
+    .theme-toggle:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+}
+
 /* Loading Spinner */
 .loading-spinner {
     position: fixed;
@@ -513,19 +608,166 @@ body {
     font-size: 1.1rem;
 }
 
-/* Responsive Design */
+/* Enhanced Mobile Responsive Design */
 @media (max-width: 768px) {
     .header-content {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
     }
 
     .main-content {
         padding: 1rem;
     }
 
+    /* Mobile Navigation - Bottom Navigation Style */
+    .nav-tabs {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-color);
+        border-bottom: none;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+        padding: 0;
+        margin: 0;
+        max-width: none;
+        justify-content: space-around;
+    }
+
+    .nav-tab {
+        flex: 1;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+        text-align: center;
+        border-bottom: none;
+        border-top: 3px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        min-height: 60px;
+    }
+
+    .nav-tab.active {
+        border-top-color: var(--primary-color);
+        border-bottom-color: transparent;
+    }
+
+    .nav-tab i {
+        margin-right: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Add bottom padding to main content to account for fixed navigation */
+    .main-content {
+        padding-bottom: 80px;
+    }
+
     .country-header {
         flex-direction: column;
         text-align: center;
+        gap: 1rem;
+    }
+
+    .country-flag-large {
+        width: 120px;
+        height: 80px;
+        align-self: center;
+    }
+
+    .country-title h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .country-actions {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-height: 44px; /* Better touch target */
+    }
+
+    .search-results {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .country-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .info-card {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+
+    .header-content {
+        padding: 0.5rem 1rem;
+    }
+
+    .theme-toggle {
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 0.75rem;
+        padding-bottom: 85px; /* Account for bottom nav */
+    }
+
+    .search-container {
+        max-width: none;
+    }
+
+    #country-search {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0.875rem 0.875rem 0.875rem 2.75rem;
+    }
+
+    .search-icon {
+        left: 0.875rem;
+    }
+
+    .clear-btn {
+        right: 0.875rem;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .country-card {
+        padding: 1rem;
+        min-height: 260px;
+    }
+
+    .country-flag {
+        height: 100px;
+    }
+
+    .country-name {
+        font-size: 1.1rem;
+    }
+
+    .country-details {
+        padding: 1rem;
+    }
+
+    .country-title h2 {
+        font-size: 1.5rem;
     }
 
     .country-flag-large {
@@ -533,44 +775,62 @@ body {
         height: 67px;
     }
 
-    .country-title h2 {
-        font-size: 1.5rem;
+    .action-btn {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.85rem;
+        min-height: 44px;
     }
 
-    .search-results {
-        grid-template-columns: 1fr;
+    .info-card {
+        padding: 1rem;
     }
 
-    .country-info {
-        grid-template-columns: 1fr;
-    }
-
-    .nav-tabs {
-        padding: 0 1rem;
+    .info-card h4 {
+        font-size: 0.9rem;
     }
 
     .nav-tab {
-        padding: 0.75rem 1rem;
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .header h1 {
-        font-size: 1.4rem;
+        font-size: 0.7rem;
+        padding: 0.625rem 0.25rem;
     }
 
-    .country-card {
+    .nav-tab i {
+        font-size: 1.1rem;
+    }
+
+    /* Smaller modal adjustments */
+    .modal-header {
+        padding: 0.875rem 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .weather-content {
         padding: 1rem;
     }
 
-    .country-details {
-        padding: 1rem;
+    .weather-temp-large {
+        font-size: 2.5rem;
     }
 
-    .action-btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
+    .weather-details-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .continent-card {
+        padding: 1rem;
+        min-height: 100px;
+    }
+
+    .continent-card i {
+        font-size: 2rem;
+    }
+
+    .continent-card h3 {
+        font-size: 1rem;
     }
 }
 
@@ -994,7 +1254,7 @@ body {
     margin: 1.5rem;
 }
 
-/* Responsive Adjustments for New Components */
+/* Enhanced Mobile Responsive Adjustments */
 @media (max-width: 768px) {
     .compare-selectors {
         flex-direction: column;
@@ -1016,6 +1276,7 @@ body {
 
     .continent-card {
         padding: 1.5rem;
+        min-height: 120px; /* Better touch target */
     }
 
     .continent-card i {
@@ -1026,9 +1287,49 @@ body {
         grid-template-columns: 1fr;
     }
 
+    /* Enhanced Mobile Modal Styles */
+    .modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+
     .modal-content {
-        margin: 1rem;
+        margin: 0;
         max-width: none;
+        width: 100%;
+        max-height: 90vh;
+        border-radius: 1rem 1rem 0 0;
+        animation: modalSlideUp 0.3s ease;
+    }
+
+    .modal-content.large {
+        max-width: none;
+    }
+
+    @keyframes modalSlideUp {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 1rem 1.5rem;
+        position: sticky;
+        top: 0;
+        background: var(--bg-primary);
+        z-index: 10;
+    }
+
+    .modal-close {
+        padding: 0.75rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .weather-main {
@@ -1044,5 +1345,22 @@ body {
     .map-container {
         height: 300px;
         margin: 1rem;
+    }
+
+    /* Better touch targets for action buttons */
+    .action-btn {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+    }
+
+    /* Improved continent country cards for mobile */
+    .continent-country-card {
+        padding: 1rem;
+        min-height: 60px;
+    }
+
+    .continent-country-flag {
+        width: 32px;
+        height: 21px;
     }
 }
