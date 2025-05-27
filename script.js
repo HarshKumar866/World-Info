@@ -1,746 +1,1366 @@
-// World Explorer - Main JavaScript File
-class WorldExplorer {
-    constructor() {
-        this.countries = [];
-        this.favorites = JSON.parse(localStorage.getItem('worldExplorerFavorites')) || [];
-        this.currentTheme = localStorage.getItem('worldExplorerTheme') || 'light';
-        this.weatherApiKey = 'YOUR_OPENWEATHER_API_KEY'; // Replace with actual API key
-        this.currentTempUnit = 'metric'; // 'metric' for Celsius, 'imperial' for Fahrenheit
-        this.map = null;
+/* CSS Variables for Theme Management */
+:root {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #64748b;
+    --accent-color: #f59e0b;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
 
-        console.log('WorldExplorer constructor called');
-        this.init();
+    /* Light Theme */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+.header {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.header h1 i {
+    margin-right: 0.5rem;
+}
+
+.theme-toggle {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.theme-toggle:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow-x: auto;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.nav-tab:hover {
+    color: var(--primary-color);
+    background: var(--bg-secondary);
+}
+
+.nav-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: var(--bg-secondary);
+}
+
+.nav-tab i {
+    margin-right: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Search Section */
+.search-section {
+    margin-bottom: 2rem;
+}
+
+.search-container {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-muted);
+    z-index: 2;
+}
+
+#country-search {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.75rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    min-height: 48px; /* Better touch target for mobile */
+    -webkit-appearance: none; /* Remove iOS styling */
+    appearance: none;
+}
+
+#country-search:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-btn {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem; /* Larger touch target */
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+    min-width: 44px; /* Better touch target for mobile */
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-btn:hover {
+    color: var(--danger-color);
+    background: var(--bg-secondary);
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .clear-btn:hover {
+        color: var(--text-muted);
+        background: none;
     }
 
-    async init() {
-        console.log('Initializing WorldExplorer...');
-        try {
-            this.setupEventListeners();
-            console.log('Event listeners set up');
-
-            this.applyTheme();
-            console.log('Theme applied');
-
-            await this.loadCountries();
-            console.log('Countries loaded');
-
-            this.populateCountrySelectors();
-            console.log('Country selectors populated');
-
-            this.loadFavorites();
-            console.log('Favorites loaded');
-
-            console.log('WorldExplorer initialization complete');
-        } catch (error) {
-            console.error('Error during initialization:', error);
-        }
-    }
-
-    setupEventListeners() {
-        try {
-            // Theme toggle
-            const themeToggle = document.getElementById('theme-toggle');
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => this.toggleTheme());
-            } else {
-                console.warn('Theme toggle button not found');
-            }
-
-            // Navigation tabs
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
-            });
-
-            // Search functionality
-            const searchInput = document.getElementById('country-search');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
-                searchInput.addEventListener('focus', () => this.showSuggestions());
-            } else {
-                console.warn('Search input not found');
-            }
-
-            const clearBtn = document.getElementById('clear-search');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => this.clearSearch());
-            } else {
-                console.warn('Clear search button not found');
-            }
-
-            // Compare functionality
-            const country1Select = document.getElementById('country1-select');
-            const country2Select = document.getElementById('country2-select');
-            if (country1Select) {
-                country1Select.addEventListener('change', () => this.handleCompare());
-            }
-            if (country2Select) {
-                country2Select.addEventListener('change', () => this.handleCompare());
-            }
-
-            // Continent cards
-            document.querySelectorAll('.continent-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    const continent = e.currentTarget.dataset.continent;
-                    this.showContinentCountries(continent);
-                });
-            });
-
-            // Modal close functionality
-            document.querySelectorAll('.modal-close').forEach(btn => {
-                btn.addEventListener('click', (e) => this.closeModal(e.target.closest('.modal')));
-            });
-
-            // Click outside modal to close
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) this.closeModal(modal);
-                });
-            });
-
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.search-container')) {
-                    this.hideSuggestions();
-                }
-            });
-        } catch (error) {
-            console.error('Error setting up event listeners:', error);
-        }
-    }
-
-    async loadCountries() {
-        try {
-            this.showLoading();
-            const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,population,area,flags,region,subregion,languages,currencies,timezones,borders,latlng,cca3');
-            this.countries = await response.json();
-            this.countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
-            this.hideLoading();
-        } catch (error) {
-            console.error('Error loading countries:', error);
-            this.hideLoading();
-            this.showError('Failed to load countries data. Please check your internet connection.');
-        }
-    }
-
-    populateCountrySelectors() {
-        const selectors = ['country1-select', 'country2-select'];
-        selectors.forEach(selectorId => {
-            const select = document.getElementById(selectorId);
-            select.innerHTML = '<option value="">Select a country...</option>';
-
-            this.countries.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country.cca3;
-                option.textContent = country.name.common;
-                select.appendChild(option);
-            });
-        });
-    }
-
-    handleSearch(query) {
-        if (query.length < 2) {
-            this.hideSuggestions();
-            this.clearSearchResults();
-            return;
-        }
-
-        const matches = this.countries.filter(country =>
-            country.name.common.toLowerCase().includes(query.toLowerCase()) ||
-            (country.capital && country.capital[0] && country.capital[0].toLowerCase().includes(query.toLowerCase()))
-        ).slice(0, 8);
-
-        this.showSearchSuggestions(matches);
-        this.showSearchResults(matches);
-    }
-
-    showSearchSuggestions(countries) {
-        const suggestions = document.getElementById('search-suggestions');
-        suggestions.innerHTML = '';
-
-        if (countries.length === 0) {
-            suggestions.style.display = 'none';
-            return;
-        }
-
-        countries.forEach(country => {
-            const item = document.createElement('div');
-            item.className = 'suggestion-item';
-            item.innerHTML = `
-                <img src="${country.flags.svg}" alt="${country.name.common} flag" class="suggestion-flag">
-                <div>
-                    <strong>${country.name.common}</strong>
-                    ${country.capital ? `<br><small>${country.capital[0]}</small>` : ''}
-                </div>
-            `;
-            item.addEventListener('click', () => {
-                this.selectCountry(country);
-                this.hideSuggestions();
-            });
-            suggestions.appendChild(item);
-        });
-
-        suggestions.style.display = 'block';
-    }
-
-    showSearchResults(countries) {
-        const resultsContainer = document.getElementById('search-results');
-        resultsContainer.innerHTML = '';
-
-        if (countries.length === 0) {
-            resultsContainer.innerHTML = '<p class="text-center">No countries found matching your search.</p>';
-            return;
-        }
-
-        countries.forEach(country => {
-            const card = this.createCountryCard(country);
-            resultsContainer.appendChild(card);
-        });
-    }
-
-    createCountryCard(country) {
-        const card = document.createElement('div');
-        card.className = 'country-card';
-        card.innerHTML = `
-            <img src="${country.flags.svg}" alt="${country.name.common} flag" class="country-flag">
-            <h3 class="country-name">${country.name.common}</h3>
-            <p class="country-capital">Capital: ${country.capital ? country.capital[0] : 'N/A'}</p>
-            <p class="country-population">Population: ${this.formatNumber(country.population)}</p>
-        `;
-
-        card.addEventListener('click', () => this.selectCountry(country));
-        return card;
-    }
-
-    selectCountry(country) {
-        document.getElementById('country-search').value = country.name.common;
-        this.showCountryDetails(country);
-        this.clearSearchResults();
-    }
-
-    showCountryDetails(country) {
-        const detailsContainer = document.getElementById('country-details');
-        const isFavorite = this.favorites.some(fav => fav.cca3 === country.cca3);
-
-        detailsContainer.innerHTML = `
-            <div class="country-header">
-                <img src="${country.flags.svg}" alt="${country.name.common} flag" class="country-flag-large">
-                <div class="country-title">
-                    <h2>${country.name.common}</h2>
-                    <p class="country-subtitle">${country.capital ? country.capital[0] : 'No capital'} • ${country.region}</p>
-                </div>
-                <div class="country-actions">
-                    <button class="action-btn favorite ${isFavorite ? 'active' : ''}" data-country='${JSON.stringify(country)}'>
-                        <i class="fas fa-heart"></i>
-                        ${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-                    </button>
-                    <button class="action-btn weather" data-capital="${country.capital ? country.capital[0] : ''}">
-                        <i class="fas fa-cloud-sun"></i>
-                        Weather
-                    </button>
-                    <button class="action-btn map" data-latlng="${country.latlng ? country.latlng.join(',') : ''}">
-                        <i class="fas fa-map-marker-alt"></i>
-                        Show on Map
-                    </button>
-                </div>
-            </div>
-
-            <div class="country-info">
-                <div class="info-card">
-                    <h4><i class="fas fa-users"></i> Demographics</h4>
-                    <div class="info-value">Population: ${this.formatNumber(country.population)}</div>
-                    <div class="info-value">Area: ${this.formatNumber(country.area)} km²</div>
-                    <div class="info-value">Density: ${this.formatNumber(country.population / country.area)} people/km²</div>
-                </div>
-
-                <div class="info-card">
-                    <h4><i class="fas fa-globe"></i> Geography</h4>
-                    <div class="info-value">Region: ${country.region}</div>
-                    <div class="info-value">Subregion: ${country.subregion || 'N/A'}</div>
-                    <div class="info-value">Coordinates: ${country.latlng ? country.latlng.join(', ') : 'N/A'}</div>
-                </div>
-
-                <div class="info-card">
-                    <h4><i class="fas fa-coins"></i> Economy</h4>
-                    ${this.formatCurrencies(country.currencies)}
-                </div>
-
-                <div class="info-card">
-                    <h4><i class="fas fa-language"></i> Languages</h4>
-                    ${this.formatLanguages(country.languages)}
-                </div>
-
-                <div class="info-card">
-                    <h4><i class="fas fa-clock"></i> Timezones</h4>
-                    ${this.formatTimezones(country.timezones)}
-                </div>
-
-                ${country.borders && country.borders.length > 0 ? `
-                <div class="info-card">
-                    <h4><i class="fas fa-map"></i> Neighboring Countries</h4>
-                    <div class="borders-list">
-                        ${this.formatBorders(country.borders)}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-
-        // Add event listeners for action buttons
-        detailsContainer.querySelector('.favorite').addEventListener('click', (e) => {
-            this.toggleFavorite(JSON.parse(e.target.dataset.country));
-        });
-
-        const weatherBtn = detailsContainer.querySelector('.weather');
-        if (weatherBtn.dataset.capital) {
-            weatherBtn.addEventListener('click', () => {
-                this.showWeather(weatherBtn.dataset.capital, country.name.common);
-            });
-        } else {
-            weatherBtn.disabled = true;
-            weatherBtn.style.opacity = '0.5';
-        }
-
-        const mapBtn = detailsContainer.querySelector('.map');
-        if (mapBtn.dataset.latlng) {
-            mapBtn.addEventListener('click', () => {
-                const [lat, lng] = mapBtn.dataset.latlng.split(',').map(Number);
-                this.showMap(lat, lng, country.name.common);
-            });
-        } else {
-            mapBtn.disabled = true;
-            mapBtn.style.opacity = '0.5';
-        }
-
-        detailsContainer.classList.remove('hidden');
-    }
-
-    formatNumber(num) {
-        if (!num) return 'N/A';
-        return new Intl.NumberFormat().format(num);
-    }
-
-    formatCurrencies(currencies) {
-        if (!currencies) return '<div class="info-value">N/A</div>';
-
-        return Object.values(currencies).map(currency =>
-            `<div class="info-value">${currency.name} (${currency.symbol || 'No symbol'})</div>`
-        ).join('');
-    }
-
-    formatLanguages(languages) {
-        if (!languages) return '<div class="info-value">N/A</div>';
-
-        return Object.values(languages).map(language =>
-            `<div class="info-value">${language}</div>`
-        ).join('');
-    }
-
-    formatTimezones(timezones) {
-        if (!timezones) return '<div class="info-value">N/A</div>';
-
-        return timezones.map(timezone =>
-            `<div class="info-value">${timezone}</div>`
-        ).join('');
-    }
-
-    formatBorders(borders) {
-        return borders.map(border => {
-            const borderCountry = this.countries.find(c => c.cca3 === border);
-            if (borderCountry) {
-                return `<span class="border-country" data-country='${JSON.stringify(borderCountry)}'>${borderCountry.name.common}</span>`;
-            }
-            return border;
-        }).join(', ');
-    }
-
-    clearSearch() {
-        document.getElementById('country-search').value = '';
-        this.hideSuggestions();
-        this.clearSearchResults();
-        document.getElementById('country-details').classList.add('hidden');
-    }
-
-    clearSearchResults() {
-        document.getElementById('search-results').innerHTML = '';
-    }
-
-    hideSuggestions() {
-        document.getElementById('search-suggestions').style.display = 'none';
-    }
-
-    showSuggestions() {
-        const query = document.getElementById('country-search').value;
-        if (query.length >= 2) {
-            this.handleSearch(query);
-        }
-    }
-
-    // Theme Management
-    toggleTheme() {
-        this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
-        this.applyTheme();
-        localStorage.setItem('worldExplorerTheme', this.currentTheme);
-    }
-
-    applyTheme() {
-        document.documentElement.setAttribute('data-theme', this.currentTheme);
-        const themeIcon = document.querySelector('#theme-toggle i');
-        themeIcon.className = this.currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-    }
-
-    // Tab Management
-    switchTab(tabName) {
-        // Update active tab
-        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-        // Show corresponding content
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`${tabName}-tab`).classList.add('active');
-
-        // Clear search when switching tabs
-        if (tabName !== 'search') {
-            this.clearSearch();
-        }
-    }
-
-    // Utility functions
-    showLoading() {
-        document.getElementById('loading-spinner').classList.remove('hidden');
-    }
-
-    hideLoading() {
-        document.getElementById('loading-spinner').classList.add('hidden');
-    }
-
-    showError(message) {
-        // Simple error display - could be enhanced with a proper modal
-        alert(message);
-    }
-
-    closeModal(modal) {
-        modal.classList.add('hidden');
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-    }
-
-    // Compare Mode
-    handleCompare() {
-        const country1Code = document.getElementById('country1-select').value;
-        const country2Code = document.getElementById('country2-select').value;
-
-        if (!country1Code || !country2Code) {
-            document.getElementById('comparison-results').innerHTML = '';
-            return;
-        }
-
-        const country1 = this.countries.find(c => c.cca3 === country1Code);
-        const country2 = this.countries.find(c => c.cca3 === country2Code);
-
-        if (country1 && country2) {
-            this.showComparison(country1, country2);
-        }
-    }
-
-    showComparison(country1, country2) {
-        const comparisonContainer = document.getElementById('comparison-results');
-
-        comparisonContainer.innerHTML = `
-            <div class="comparison-card">
-                ${this.createComparisonCard(country1)}
-            </div>
-            <div class="comparison-card">
-                ${this.createComparisonCard(country2)}
-            </div>
-        `;
-    }
-
-    createComparisonCard(country) {
-        return `
-            <div class="comparison-header">
-                <img src="${country.flags.svg}" alt="${country.name.common} flag" class="comparison-flag">
-                <div class="comparison-title">
-                    <h3>${country.name.common}</h3>
-                    <p>${country.capital ? country.capital[0] : 'No capital'}</p>
-                </div>
-            </div>
-            <div class="comparison-stats">
-                <div class="stat-row">
-                    <span class="stat-label">Population</span>
-                    <span class="stat-value">${this.formatNumber(country.population)}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Area</span>
-                    <span class="stat-value">${this.formatNumber(country.area)} km²</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Density</span>
-                    <span class="stat-value">${this.formatNumber(country.population / country.area)} people/km²</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Region</span>
-                    <span class="stat-value">${country.region}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Subregion</span>
-                    <span class="stat-value">${country.subregion || 'N/A'}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Languages</span>
-                    <span class="stat-value">${country.languages ? Object.values(country.languages).length : 0}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Timezones</span>
-                    <span class="stat-value">${country.timezones ? country.timezones.length : 0}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Borders</span>
-                    <span class="stat-value">${country.borders ? country.borders.length : 0}</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // Continent Browser
-    showContinentCountries(continent) {
-        const continentCountries = this.countries.filter(country =>
-            country.region === continent ||
-            (continent === 'North America' && country.region === 'Americas' && country.subregion && country.subregion.includes('North')) ||
-            (continent === 'South America' && country.region === 'Americas' && country.subregion && country.subregion.includes('South'))
-        );
-
-        const container = document.getElementById('continent-countries');
-        container.innerHTML = `
-            <h3><i class="fas fa-map"></i> Countries in ${continent} (${continentCountries.length})</h3>
-            <div class="countries-grid">
-                ${continentCountries.map(country => `
-                    <div class="continent-country-card" data-country='${JSON.stringify(country)}'>
-                        <img src="${country.flags.svg}" alt="${country.name.common} flag" class="continent-country-flag">
-                        <div class="continent-country-info">
-                            <h4>${country.name.common}</h4>
-                            <p>${country.capital ? country.capital[0] : 'No capital'}</p>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        // Add click listeners to country cards
-        container.querySelectorAll('.continent-country-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                const country = JSON.parse(e.currentTarget.dataset.country);
-                this.switchTab('search');
-                this.selectCountry(country);
-            });
-        });
-    }
-
-    // Favorites Management
-    toggleFavorite(country) {
-        const existingIndex = this.favorites.findIndex(fav => fav.cca3 === country.cca3);
-
-        if (existingIndex > -1) {
-            this.favorites.splice(existingIndex, 1);
-        } else {
-            this.favorites.push(country);
-        }
-
-        localStorage.setItem('worldExplorerFavorites', JSON.stringify(this.favorites));
-        this.loadFavorites();
-
-        // Update the button in country details if visible
-        const favoriteBtn = document.querySelector('.country-details .favorite');
-        if (favoriteBtn) {
-            const isNowFavorite = this.favorites.some(fav => fav.cca3 === country.cca3);
-            favoriteBtn.classList.toggle('active', isNowFavorite);
-            favoriteBtn.innerHTML = `
-                <i class="fas fa-heart"></i>
-                ${isNowFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
-            `;
-        }
-    }
-
-    loadFavorites() {
-        const favoritesContainer = document.getElementById('favorites-list');
-
-        if (this.favorites.length === 0) {
-            favoritesContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-heart-broken"></i>
-                    <p>No favorites yet. Start exploring and add countries to your favorites!</p>
-                </div>
-            `;
-            return;
-        }
-
-        favoritesContainer.innerHTML = this.favorites.map(country => {
-            const card = this.createCountryCard(country);
-            return card.outerHTML;
-        }).join('');
-
-        // Add click listeners to favorite cards
-        favoritesContainer.querySelectorAll('.country-card').forEach((card, index) => {
-            card.addEventListener('click', () => {
-                this.switchTab('search');
-                this.selectCountry(this.favorites[index]);
-            });
-        });
-    }
-
-    // Weather Functionality
-    async showWeather(city, countryName) {
-        if (!this.weatherApiKey || this.weatherApiKey === 'YOUR_OPENWEATHER_API_KEY') {
-            this.showWeatherError('Weather API key not configured. Please add your OpenWeatherMap API key.');
-            return;
-        }
-
-        try {
-            this.showLoading();
-            const response = await fetch(
-                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.weatherApiKey}&units=${this.currentTempUnit}`
-            );
-
-            if (!response.ok) {
-                throw new Error('Weather data not available');
-            }
-
-            const weatherData = await response.json();
-            this.displayWeather(weatherData, countryName);
-            this.hideLoading();
-        } catch (error) {
-            console.error('Error fetching weather:', error);
-            this.hideLoading();
-            this.showWeatherError('Unable to fetch weather data for this location.');
-        }
-    }
-
-    displayWeather(weatherData, countryName) {
-        const modal = document.getElementById('weather-modal');
-        const content = document.getElementById('weather-content');
-
-        const tempUnit = this.currentTempUnit === 'metric' ? '°C' : '°F';
-        const windUnit = this.currentTempUnit === 'metric' ? 'm/s' : 'mph';
-
-        content.innerHTML = `
-            <div class="weather-main">
-                <div class="weather-temp-section">
-                    <div>
-                        <div class="weather-temp-large">${Math.round(weatherData.main.temp)}${tempUnit}</div>
-                        <div class="weather-description">${weatherData.weather[0].description}</div>
-                        <div style="color: var(--text-muted); margin-top: 0.5rem;">
-                            ${weatherData.name}, ${countryName}
-                        </div>
-                    </div>
-                </div>
-                <img src="https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png"
-                     alt="Weather icon" class="weather-icon-large">
-            </div>
-
-            <div class="weather-details-grid">
-                <div class="weather-detail-card">
-                    <i class="fas fa-thermometer-half"></i>
-                    <div class="label">Feels like</div>
-                    <div class="value">${Math.round(weatherData.main.feels_like)}${tempUnit}</div>
-                </div>
-                <div class="weather-detail-card">
-                    <i class="fas fa-tint"></i>
-                    <div class="label">Humidity</div>
-                    <div class="value">${weatherData.main.humidity}%</div>
-                </div>
-                <div class="weather-detail-card">
-                    <i class="fas fa-wind"></i>
-                    <div class="label">Wind Speed</div>
-                    <div class="value">${weatherData.wind.speed} ${windUnit}</div>
-                </div>
-                <div class="weather-detail-card">
-                    <i class="fas fa-compress-arrows-alt"></i>
-                    <div class="label">Pressure</div>
-                    <div class="value">${weatherData.main.pressure} hPa</div>
-                </div>
-                <div class="weather-detail-card">
-                    <i class="fas fa-eye"></i>
-                    <div class="label">Visibility</div>
-                    <div class="value">${weatherData.visibility ? (weatherData.visibility / 1000).toFixed(1) + ' km' : 'N/A'}</div>
-                </div>
-                <div class="weather-detail-card">
-                    <i class="fas fa-cloud"></i>
-                    <div class="label">Cloudiness</div>
-                    <div class="value">${weatherData.clouds.all}%</div>
-                </div>
-            </div>
-
-            <div class="temp-toggle">
-                <button class="${this.currentTempUnit === 'metric' ? 'active' : ''}" data-unit="metric">°C</button>
-                <button class="${this.currentTempUnit === 'imperial' ? 'active' : ''}" data-unit="imperial">°F</button>
-            </div>
-        `;
-
-        // Add temperature unit toggle listeners
-        content.querySelectorAll('.temp-toggle button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const newUnit = e.target.dataset.unit;
-                if (newUnit !== this.currentTempUnit) {
-                    this.currentTempUnit = newUnit;
-                    this.showWeather(weatherData.name, countryName);
-                }
-            });
-        });
-
-        modal.classList.remove('hidden');
-    }
-
-    showWeatherError(message) {
-        const modal = document.getElementById('weather-modal');
-        const content = document.getElementById('weather-content');
-
-        content.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger-color); margin-bottom: 1rem;"></i>
-                <p style="color: var(--text-secondary);">${message}</p>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem;">
-                    To enable weather data, sign up for a free API key at
-                    <a href="https://openweathermap.org/api" target="_blank" style="color: var(--primary-color);">OpenWeatherMap</a>
-                </p>
-            </div>
-        `;
-
-        modal.classList.remove('hidden');
-    }
-
-    // Map Functionality
-    showMap(lat, lng, countryName) {
-        const modal = document.getElementById('map-modal');
-        const mapContainer = document.getElementById('map-container');
-
-        // Clear any existing map
-        mapContainer.innerHTML = '';
-
-        // Initialize Leaflet map
-        this.map = L.map('map-container').setView([lat, lng], 6);
-
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(this.map);
-
-        // Add marker
-        L.marker([lat, lng])
-            .addTo(this.map)
-            .bindPopup(`<strong>${countryName}</strong><br>Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`)
-            .openPopup();
-
-        modal.classList.remove('hidden');
-
-        // Invalidate size after modal is shown
-        setTimeout(() => {
-            this.map.invalidateSize();
-        }, 100);
+    .clear-btn:active {
+        color: var(--danger-color);
+        background: var(--bg-secondary);
+        transform: scale(0.95);
     }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new WorldExplorer();
-});
+/* Suggestions Dropdown */
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-lg);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 56px; /* Better touch target for mobile */
+}
+
+.suggestion-item:hover {
+    background: var(--bg-secondary);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Touch device optimizations for suggestions */
+@media (hover: none) and (pointer: coarse) {
+    .suggestion-item:hover {
+        background: none;
+    }
+
+    .suggestion-item:active {
+        background: var(--bg-secondary);
+        transform: scale(0.98);
+    }
+}
+
+.suggestion-flag {
+    width: 24px;
+    height: 16px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+/* Search Results */
+.search-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.country-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    min-height: 280px; /* Consistent card height */
+}
+
+.country-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+/* Touch device optimizations for country cards */
+@media (hover: none) and (pointer: coarse) {
+    .country-card:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+        border-color: var(--border-color);
+    }
+
+    .country-card:active {
+        transform: scale(0.98);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+}
+
+.country-flag {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.country-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.country-capital {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.country-population {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Country Details */
+.country-details {
+    background: var(--bg-primary);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    margin-top: 2rem;
+}
+
+.country-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.country-flag-large {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+}
+
+.country-title {
+    flex: 1;
+    min-width: 200px;
+}
+
+.country-title h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.country-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.country-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.action-btn.favorite.active {
+    background: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+/* Country Info Grid */
+.country-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.info-card h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.info-list {
+    list-style: none;
+}
+
+.info-list li {
+    padding: 0.25rem 0;
+    color: var(--text-secondary);
+}
+
+/* Weather Section */
+.weather-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.weather-temp {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.weather-icon {
+    width: 64px;
+    height: 64px;
+}
+
+.weather-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.weather-detail {
+    text-align: center;
+}
+
+.weather-detail-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+}
+
+.weather-detail-value {
+    font-weight: 600;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* Mobile-specific utility classes */
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+
+    .mobile-full-width {
+        width: 100% !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    .country-card:hover,
+    .continent-card:hover,
+    .action-btn:hover,
+    .theme-toggle:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+    }
+
+    /* Add active states for better touch feedback */
+    .country-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .continent-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .action-btn:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+
+    .theme-toggle:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--bg-tertiary);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+    color: white;
+    font-size: 1.1rem;
+}
+
+/* Enhanced Mobile Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        padding: 0.75rem 1rem;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
+
+    /* Mobile Navigation - Bottom Navigation Style */
+    .nav-tabs {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-primary);
+        border-top: 1px solid var(--border-color);
+        border-bottom: none;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+        padding: 0;
+        margin: 0;
+        max-width: none;
+        justify-content: space-around;
+    }
+
+    .nav-tab {
+        flex: 1;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+        text-align: center;
+        border-bottom: none;
+        border-top: 3px solid transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        min-height: 60px;
+    }
+
+    .nav-tab.active {
+        border-top-color: var(--primary-color);
+        border-bottom-color: transparent;
+    }
+
+    .nav-tab i {
+        margin-right: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Add bottom padding to main content to account for fixed navigation */
+    .main-content {
+        padding-bottom: 80px;
+    }
+
+    .country-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .country-flag-large {
+        width: 120px;
+        height: 80px;
+        align-self: center;
+    }
+
+    .country-title h2 {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .country-actions {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-height: 44px; /* Better touch target */
+    }
+
+    .search-results {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .country-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .info-card {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3rem;
+    }
+
+    .header-content {
+        padding: 0.5rem 1rem;
+    }
+
+    .theme-toggle {
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 0.75rem;
+        padding-bottom: 85px; /* Account for bottom nav */
+    }
+
+    .search-container {
+        max-width: none;
+    }
+
+    #country-search {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0.875rem 0.875rem 0.875rem 2.75rem;
+    }
+
+    .search-icon {
+        left: 0.875rem;
+    }
+
+    .clear-btn {
+        right: 0.875rem;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .country-card {
+        padding: 1rem;
+        min-height: 260px;
+    }
+
+    .country-flag {
+        height: 100px;
+    }
+
+    .country-name {
+        font-size: 1.1rem;
+    }
+
+    .country-details {
+        padding: 1rem;
+    }
+
+    .country-title h2 {
+        font-size: 1.5rem;
+    }
+
+    .country-flag-large {
+        width: 100px;
+        height: 67px;
+    }
+
+    .action-btn {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.85rem;
+        min-height: 44px;
+    }
+
+    .info-card {
+        padding: 1rem;
+    }
+
+    .info-card h4 {
+        font-size: 0.9rem;
+    }
+
+    .nav-tab {
+        font-size: 0.7rem;
+        padding: 0.625rem 0.25rem;
+    }
+
+    .nav-tab i {
+        font-size: 1.1rem;
+    }
+
+    /* Smaller modal adjustments */
+    .modal-header {
+        padding: 0.875rem 1rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .weather-content {
+        padding: 1rem;
+    }
+
+    .weather-temp-large {
+        font-size: 2.5rem;
+    }
+
+    .weather-details-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .continent-card {
+        padding: 1rem;
+        min-height: 100px;
+    }
+
+    .continent-card i {
+        font-size: 2rem;
+    }
+
+    .continent-card h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Compare Section */
+.compare-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.compare-selectors {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.country-selector {
+    flex: 1;
+    min-width: 200px;
+}
+
+.country-selector label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.country-selector select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.country-selector select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.vs-divider {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.1rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+.comparison-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.comparison-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.comparison-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comparison-flag {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+}
+
+.comparison-title {
+    flex: 1;
+}
+
+.comparison-title h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.comparison-title p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.comparison-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--bg-secondary);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Continents Section */
+.continents-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.continents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.continent-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.continent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.continent-card i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.continent-card h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.continent-countries {
+    margin-top: 2rem;
+}
+
+.continent-countries h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.continent-country-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.continent-country-card:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary-color);
+}
+
+.continent-country-flag {
+    width: 40px;
+    height: 27px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+}
+
+.continent-country-info h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.continent-country-info p {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* Favorites Section */
+.favorites-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.favorites-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: 1rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-content.large {
+    max-width: 800px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    color: var(--danger-color);
+    background: var(--bg-secondary);
+}
+
+.weather-content {
+    padding: 1.5rem;
+}
+
+.weather-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 0.75rem;
+}
+
+.weather-temp-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.weather-temp-large {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.weather-description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    text-transform: capitalize;
+}
+
+.weather-icon-large {
+    width: 80px;
+    height: 80px;
+}
+
+.weather-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.weather-detail-card {
+    background: var(--bg-secondary);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.weather-detail-card i {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.weather-detail-card .label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.weather-detail-card .value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.temp-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.temp-toggle button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.temp-toggle button.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Map Container */
+.map-container {
+    height: 400px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin: 1.5rem;
+}
+
+/* Enhanced Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .compare-selectors {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .vs-divider {
+        order: 2;
+        margin: 1rem 0;
+    }
+
+    .comparison-results {
+        grid-template-columns: 1fr;
+    }
+
+    .continents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .continent-card {
+        padding: 1.5rem;
+        min-height: 120px; /* Better touch target */
+    }
+
+    .continent-card i {
+        font-size: 2.5rem;
+    }
+
+    .countries-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Enhanced Mobile Modal Styles */
+    .modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        margin: 0;
+        max-width: none;
+        width: 100%;
+        max-height: 90vh;
+        border-radius: 1rem 1rem 0 0;
+        animation: modalSlideUp 0.3s ease;
+    }
+
+    .modal-content.large {
+        max-width: none;
+    }
+
+    @keyframes modalSlideUp {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 1rem 1.5rem;
+        position: sticky;
+        top: 0;
+        background: var(--bg-primary);
+        z-index: 10;
+    }
+
+    .modal-close {
+        padding: 0.75rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .weather-main {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .weather-details-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .map-container {
+        height: 300px;
+        margin: 1rem;
+    }
+
+    /* Better touch targets for action buttons */
+    .action-btn {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+    }
+
+    /* Improved continent country cards for mobile */
+    .continent-country-card {
+        padding: 1rem;
+        min-height: 60px;
+    }
+
+    .continent-country-flag {
+        width: 32px;
+        height: 21px;
+    }
+}
