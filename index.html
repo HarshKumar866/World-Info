@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Explorer - Country & City Info Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-globe-americas"></i> World Explorer</h1>
+                <div class="header-controls">
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="search">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button class="nav-tab" data-tab="compare">
+                <i class="fas fa-balance-scale"></i> Compare
+            </button>
+            <button class="nav-tab" data-tab="continents">
+                <i class="fas fa-map"></i> Continents
+            </button>
+            <button class="nav-tab" data-tab="favorites">
+                <i class="fas fa-heart"></i> Favorites
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content active">
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                id="country-search" 
+                                placeholder="Search for countries or capitals..."
+                                autocomplete="off"
+                            >
+                            <button id="clear-search" class="clear-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="search-suggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </div>
+
+                <div id="search-results" class="search-results"></div>
+                <div id="country-details" class="country-details hidden"></div>
+            </div>
+
+            <!-- Compare Tab -->
+            <div id="compare-tab" class="tab-content">
+                <div class="compare-section">
+                    <h2>Compare Countries</h2>
+                    <div class="compare-selectors">
+                        <div class="country-selector">
+                            <label for="country1-select">First Country:</label>
+                            <select id="country1-select">
+                                <option value="">Select a country...</option>
+                            </select>
+                        </div>
+                        <div class="vs-divider">VS</div>
+                        <div class="country-selector">
+                            <label for="country2-select">Second Country:</label>
+                            <select id="country2-select">
+                                <option value="">Select a country...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="comparison-results" class="comparison-results"></div>
+                </div>
+            </div>
+
+            <!-- Continents Tab -->
+            <div id="continents-tab" class="tab-content">
+                <div class="continents-section">
+                    <h2>Explore by Continent</h2>
+                    <div class="continents-grid">
+                        <div class="continent-card" data-continent="Africa">
+                            <i class="fas fa-mountain"></i>
+                            <h3>Africa</h3>
+                        </div>
+                        <div class="continent-card" data-continent="Asia">
+                            <i class="fas fa-pagoda"></i>
+                            <h3>Asia</h3>
+                        </div>
+                        <div class="continent-card" data-continent="Europe">
+                            <i class="fas fa-landmark"></i>
+                            <h3>Europe</h3>
+                        </div>
+                        <div class="continent-card" data-continent="North America">
+                            <i class="fas fa-city"></i>
+                            <h3>North America</h3>
+                        </div>
+                        <div class="continent-card" data-continent="South America">
+                            <i class="fas fa-tree"></i>
+                            <h3>South America</h3>
+                        </div>
+                        <div class="continent-card" data-continent="Oceania">
+                            <i class="fas fa-water"></i>
+                            <h3>Oceania</h3>
+                        </div>
+                    </div>
+                    <div id="continent-countries" class="continent-countries"></div>
+                </div>
+            </div>
+
+            <!-- Favorites Tab -->
+            <div id="favorites-tab" class="tab-content">
+                <div class="favorites-section">
+                    <h2>Your Favorite Countries</h2>
+                    <div id="favorites-list" class="favorites-list">
+                        <div class="empty-state">
+                            <i class="fas fa-heart-broken"></i>
+                            <p>No favorites yet. Start exploring and add countries to your favorites!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Weather Modal -->
+        <div id="weather-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Weather Information</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div id="weather-content" class="weather-content"></div>
+            </div>
+        </div>
+
+        <!-- Map Modal -->
+        <div id="map-modal" class="modal hidden">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3>Country Location</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div id="map-container" class="map-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

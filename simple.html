@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Explorer - Simple Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-globe-americas"></i> World Explorer</h1>
+                <div class="header-controls">
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="search">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button class="nav-tab" data-tab="test">
+                <i class="fas fa-cog"></i> Test
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Search Tab -->
+            <div id="search-tab" class="tab-content active">
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                id="country-search" 
+                                placeholder="Search for countries or capitals..."
+                                autocomplete="off"
+                            >
+                            <button id="clear-search" class="clear-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="search-suggestions" class="suggestions-dropdown"></div>
+                    </div>
+                </div>
+
+                <div id="search-results" class="search-results"></div>
+                <div id="country-details" class="country-details hidden"></div>
+            </div>
+
+            <!-- Test Tab -->
+            <div id="test-tab" class="tab-content">
+                <div style="text-align: center; padding: 2rem;">
+                    <h2>Application Status</h2>
+                    <div id="status-messages" style="margin: 2rem 0;"></div>
+                    <button onclick="testAPI()" style="margin: 0.5rem; padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                        Test API
+                    </button>
+                    <button onclick="testTheme()" style="margin: 0.5rem; padding: 0.75rem 1.5rem; background: #10b981; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                        Test Theme
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script>
+        // Simple World Explorer Test
+        class SimpleWorldExplorer {
+            constructor() {
+                this.countries = [];
+                this.currentTheme = localStorage.getItem('worldExplorerTheme') || 'light';
+                this.init();
+            }
+
+            init() {
+                console.log('Initializing Simple World Explorer...');
+                this.setupEventListeners();
+                this.applyTheme();
+                this.addStatus('✅ Application initialized successfully!', 'success');
+            }
+
+            setupEventListeners() {
+                // Theme toggle
+                const themeToggle = document.getElementById('theme-toggle');
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => this.toggleTheme());
+                }
+
+                // Navigation tabs
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+
+                // Search functionality
+                const searchInput = document.getElementById('country-search');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => this.handleSearch(e.target.value));
+                }
+
+                const clearBtn = document.getElementById('clear-search');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => this.clearSearch());
+                }
+
+                console.log('Event listeners set up successfully');
+            }
+
+            async loadCountries() {
+                try {
+                    this.showLoading();
+                    this.addStatus('🔄 Loading countries data...', 'info');
+                    
+                    const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,population,area,flags,region,cca3');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    this.countries = await response.json();
+                    this.countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+                    
+                    this.hideLoading();
+                    this.addStatus(`✅ Loaded ${this.countries.length} countries successfully!`, 'success');
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error loading countries:', error);
+                    this.hideLoading();
+                    this.addStatus(`❌ Failed to load countries: ${error.message}`, 'error');
+                    return false;
+                }
+            }
+
+            handleSearch(query) {
+                if (query.length < 2) {
+                    this.clearSearchResults();
+                    return;
+                }
+
+                if (this.countries.length === 0) {
+                    this.addStatus('⚠️ No countries data loaded. Click "Test API" first.', 'warning');
+                    return;
+                }
+
+                const matches = this.countries.filter(country => 
+                    country.name.common.toLowerCase().includes(query.toLowerCase()) ||
+                    (country.capital && country.capital[0] && country.capital[0].toLowerCase().includes(query.toLowerCase()))
+                ).slice(0, 6);
+
+                this.showSearchResults(matches);
+            }
+
+            showSearchResults(countries) {
+                const resultsContainer = document.getElementById('search-results');
+                if (!resultsContainer) return;
+
+                resultsContainer.innerHTML = '';
+
+                if (countries.length === 0) {
+                    resultsContainer.innerHTML = '<p class="text-center">No countries found matching your search.</p>';
+                    return;
+                }
+
+                countries.forEach(country => {
+                    const card = document.createElement('div');
+                    card.className = 'country-card';
+                    card.innerHTML = `
+                        <img src="${country.flags.svg}" alt="${country.name.common} flag" class="country-flag">
+                        <h3 class="country-name">${country.name.common}</h3>
+                        <p class="country-capital">Capital: ${country.capital ? country.capital[0] : 'N/A'}</p>
+                        <p class="country-population">Population: ${this.formatNumber(country.population)}</p>
+                    `;
+                    
+                    card.addEventListener('click', () => this.selectCountry(country));
+                    resultsContainer.appendChild(card);
+                });
+            }
+
+            selectCountry(country) {
+                document.getElementById('country-search').value = country.name.common;
+                this.addStatus(`🎯 Selected: ${country.name.common}`, 'info');
+                this.clearSearchResults();
+            }
+
+            clearSearch() {
+                const searchInput = document.getElementById('country-search');
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                this.clearSearchResults();
+            }
+
+            clearSearchResults() {
+                const resultsContainer = document.getElementById('search-results');
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '';
+                }
+            }
+
+            formatNumber(num) {
+                if (!num) return 'N/A';
+                return new Intl.NumberFormat().format(num);
+            }
+
+            // Theme Management
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                this.applyTheme();
+                localStorage.setItem('worldExplorerTheme', this.currentTheme);
+                this.addStatus(`🎨 Switched to ${this.currentTheme} theme`, 'info');
+            }
+
+            applyTheme() {
+                document.documentElement.setAttribute('data-theme', this.currentTheme);
+                const themeIcon = document.querySelector('#theme-toggle i');
+                if (themeIcon) {
+                    themeIcon.className = this.currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+                }
+            }
+
+            // Tab Management
+            switchTab(tabName) {
+                // Update active tab
+                document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+                const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                }
+
+                // Show corresponding content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                const activeContent = document.getElementById(`${tabName}-tab`);
+                if (activeContent) {
+                    activeContent.classList.add('active');
+                }
+            }
+
+            // Utility functions
+            showLoading() {
+                const spinner = document.getElementById('loading-spinner');
+                if (spinner) {
+                    spinner.classList.remove('hidden');
+                }
+            }
+
+            hideLoading() {
+                const spinner = document.getElementById('loading-spinner');
+                if (spinner) {
+                    spinner.classList.add('hidden');
+                }
+            }
+
+            addStatus(message, type = 'info') {
+                const container = document.getElementById('status-messages');
+                if (!container) return;
+
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    padding: 0.75rem;
+                    margin: 0.5rem 0;
+                    border-radius: 0.5rem;
+                    border-left: 4px solid;
+                    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : type === 'warning' ? '#fff3cd' : '#d1ecf1'};
+                    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : type === 'warning' ? '#856404' : '#0c5460'};
+                    border-left-color: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8'};
+                `;
+                div.textContent = message;
+                container.appendChild(div);
+
+                // Keep only last 5 messages
+                while (container.children.length > 5) {
+                    container.removeChild(container.firstChild);
+                }
+            }
+        }
+
+        // Global test functions
+        async function testAPI() {
+            if (window.explorer) {
+                await window.explorer.loadCountries();
+            }
+        }
+
+        function testTheme() {
+            if (window.explorer) {
+                window.explorer.toggleTheme();
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing application...');
+            window.explorer = new SimpleWorldExplorer();
+        });
+    </script>
+</body>
+</html>

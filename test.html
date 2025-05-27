@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Explorer Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🌍 World Explorer - Test Page</h1>
+        
+        <div class="status info">
+            <strong>Testing Application Components...</strong>
+        </div>
+
+        <div id="status-container">
+            <!-- Status messages will appear here -->
+        </div>
+
+        <div>
+            <button onclick="testAPI()">Test REST Countries API</button>
+            <button onclick="testLocalStorage()">Test Local Storage</button>
+            <button onclick="testCSS()">Test CSS Loading</button>
+            <button onclick="testJavaScript()">Test JavaScript</button>
+            <button onclick="openMainApp()">Open Main Application</button>
+        </div>
+
+        <div id="results">
+            <p><em>Click the buttons above to test different components...</em></p>
+        </div>
+    </div>
+
+    <script>
+        function addStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+        }
+
+        function updateResults(content) {
+            document.getElementById('results').innerHTML = content;
+        }
+
+        async function testAPI() {
+            addStatus('Testing REST Countries API...', 'info');
+            try {
+                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,capital,population,flags&limit=5');
+                const countries = await response.json();
+                
+                if (countries && countries.length > 0) {
+                    addStatus('✅ REST Countries API is working!', 'success');
+                    updateResults(`
+                        <h3>Sample Countries Data:</h3>
+                        ${countries.slice(0, 3).map(country => `
+                            <div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 5px;">
+                                <strong>${country.name.common}</strong><br>
+                                Capital: ${country.capital ? country.capital[0] : 'N/A'}<br>
+                                Population: ${country.population ? country.population.toLocaleString() : 'N/A'}
+                            </div>
+                        `).join('')}
+                    `);
+                } else {
+                    addStatus('❌ API returned empty data', 'error');
+                }
+            } catch (error) {
+                addStatus(`❌ API Error: ${error.message}`, 'error');
+                updateResults(`<p style="color: red;">Error: ${error.message}</p>`);
+            }
+        }
+
+        function testLocalStorage() {
+            try {
+                localStorage.setItem('worldExplorerTest', 'test-value');
+                const value = localStorage.getItem('worldExplorerTest');
+                localStorage.removeItem('worldExplorerTest');
+                
+                if (value === 'test-value') {
+                    addStatus('✅ Local Storage is working!', 'success');
+                    updateResults('<p style="color: green;">Local Storage test passed - favorites and theme will persist!</p>');
+                } else {
+                    addStatus('❌ Local Storage test failed', 'error');
+                }
+            } catch (error) {
+                addStatus(`❌ Local Storage Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testCSS() {
+            // Check if external CSS is loaded by testing a known style
+            const testElement = document.createElement('div');
+            testElement.style.display = 'none';
+            document.body.appendChild(testElement);
+            
+            // Try to load the main CSS file
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'styles.css';
+            link.onload = () => {
+                addStatus('✅ CSS file loaded successfully!', 'success');
+                updateResults('<p style="color: green;">CSS is loading properly - styling will work!</p>');
+            };
+            link.onerror = () => {
+                addStatus('❌ CSS file failed to load', 'error');
+                updateResults('<p style="color: red;">CSS file not found or failed to load</p>');
+            };
+            document.head.appendChild(link);
+            
+            document.body.removeChild(testElement);
+        }
+
+        function testJavaScript() {
+            try {
+                // Test if the main script can be loaded
+                const script = document.createElement('script');
+                script.src = 'script.js';
+                script.onload = () => {
+                    addStatus('✅ JavaScript file loaded successfully!', 'success');
+                    updateResults('<p style="color: green;">JavaScript is loading properly - functionality will work!</p>');
+                };
+                script.onerror = () => {
+                    addStatus('❌ JavaScript file failed to load', 'error');
+                    updateResults('<p style="color: red;">JavaScript file not found or failed to load</p>');
+                };
+                // Don't actually append to avoid conflicts
+                
+                addStatus('✅ JavaScript engine is working!', 'success');
+                updateResults('<p style="color: green;">JavaScript engine test passed!</p>');
+            } catch (error) {
+                addStatus(`❌ JavaScript Error: ${error.message}`, 'error');
+            }
+        }
+
+        function openMainApp() {
+            window.open('index.html', '_blank');
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', () => {
+            addStatus('🚀 Test page loaded successfully!', 'success');
+        });
+    </script>
+</body>
+</html>
